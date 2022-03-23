@@ -37,7 +37,7 @@ function Home() {
       resetForm();
       setIsActiveModal(false);
       setLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       setLoading(false);
       console.log('error', error.message);
     }

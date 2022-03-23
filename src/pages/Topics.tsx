@@ -1,17 +1,9 @@
 import React, { useState } from 'react';
 import { Header, Button } from '../lib';
-import config from '../utils/config';
-import { useConnection } from '../utils/connection';
-import { createAccount } from '../utils/accountServices';
 
 function Topics() {
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading] = useState<boolean>(false);
 
-  const {
-    client,
-    updateClientAccountBalance,
-    getAccountBalance,
-  } = useConnection();
   const handleCreateAccount = async () => {};
 
   return (
