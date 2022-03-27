@@ -5,10 +5,9 @@ import { Header, Button } from '../lib';
 import CreateAccountModal from '../components/accounts/CreateAccountModal';
 import Accounts from '../components/accounts/Accounts';
 import { useWalletConnector } from '../utils/walletConnector';
-// import config from '../utils/config';
-// import { useConnection } from '../utils/connection';
 import { createAccount } from '../utils/accountServices';
 import { StoreModal } from '../utils/store';
+import SendHBar from '../components/tokens/SendToken';
 
 function Home() {
   const { accountModal } = useStoreActions(
@@ -17,7 +16,12 @@ function Home() {
 
   const [loading, setLoading] = useState<boolean>(false);
   const [isActiveModal, setIsActiveModal] = useState<boolean>(false);
-  const { account, sendTransaction, isConnected } = useWalletConnector();
+  const {
+    account,
+    sendTransaction,
+    isConnected,
+    chainId,
+  } = useWalletConnector();
 
   const handleCreateAccount = async (
     {
@@ -48,6 +52,7 @@ function Home() {
           publicKey,
           name,
           balance,
+          chainId,
         });
       }
     });
@@ -60,6 +65,7 @@ function Home() {
   return (
     <div>
       <Header title="Accounts">
+        <SendHBar /> &nbsp;
         <Button
           name="Create Account"
           onClick={() => setIsActiveModal(true)}

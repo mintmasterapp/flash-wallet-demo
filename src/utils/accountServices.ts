@@ -1,90 +1,58 @@
 /* eslint-disable no-underscore-dangle */
 import {
+  Client,
   PrivateKey,
   AccountCreateTransaction,
-  Client,
   TransferTransaction,
-  AccountBalanceQuery,
   Hbar,
   AccountId,
   TransactionId,
   Transaction,
+  PublicKey,
+  AccountBalanceQuery,
 } from '@hashgraph/sdk';
-import config from './config';
+import axios from 'axios';
+import Long from 'long';
 
-// import { associateTokenToAccount } from './tokenService';
-
-export async function getClient({
-  accountId,
-  privateKey,
-}: {
-  accountId: string;
-  privateKey: string;
-}) {
+const getHederaClient = (chainId: number) => {
+  if (chainId === 1) {
+    const client = Client.forMainnet();
+    return client;
+  }
+  if (chainId === 3) {
+    const client = Client.forPreviewnet();
+    return client;
+  }
   const client = Client.forTestnet();
-  client.setOperator(accountId, privateKey);
   return client;
-}
+};
 
 export const makeTransBytes = async (trans: any, accountId: string) => {
   const transId = TransactionId.generate(accountId);
   trans.setTransactionId(transId);
   trans.setNodeAccountIds([new AccountId(3)]);
   await trans.freeze();
+  const data = Transaction.fromBytes(
+    trans.toBytes(),
+  )._getScheduledTransactionBody();
+  console.log('_getScheduledTransactionBody', data);
   return Buffer.from(trans.toBytes()).toString('hex');
 };
 
-export async function sendHBars({
-  accountId,
-  privateKey,
-  amount,
-  destinationAccountId,
-}: {
-  accountId: string;
-  privateKey: string;
-  amount: number;
-  destinationAccountId: string;
-}) {
-  const client = Client.forTestnet();
-  client.setOperator(accountId, privateKey);
-  const transaction = new TransferTransaction()
-    .addHbarTransfer(accountId, new Hbar(-amount))
-    .addHbarTransfer(destinationAccountId, new Hbar(amount));
-  const txResponse = await transaction.execute(client);
-  const receipt = await txResponse.getReceipt(client);
-  const transactionStatus = receipt.status;
-  return transactionStatus.toString();
+export async function getAccountBalance(accountId: string, chainId: number) {
+  const query = new AccountBalanceQuery().setAccountId(accountId);
+  const accountBalance = await query.execute(getHederaClient(chainId));
+  return parseFloat(accountBalance.hbars.toString()).toFixed(2);
 }
 
-export async function getAccountBalance({
-  accountId,
-  privateKey,
-}: {
-  accountId: string;
-  privateKey: string;
-}) {
-  const client = Client.forTestnet();
-  client.setOperator(accountId, privateKey);
-  const accountBalance = await new AccountBalanceQuery()
-    .setAccountId(accountId)
-    .execute(client);
-
-  return {
-    hbarBalance: accountBalance.hbars.toString(),
-    tokenBal: accountBalance.tokens?.get(config.tokenId)?.toNumber(),
-  };
+export async function getPublicKeyByAccountId(accountId: string) {
+  const { data }: any = await axios(
+    `https://testnet.mirrornode.hedera.com/api/v1/accounts/${accountId}`,
+  );
+  console.log(data);
+  const key = await PublicKey.fromString(data.key.key);
+  return key;
 }
-
-// export const transactionsTypes: any = {
-//   cryptoCreateAccount: {
-//     name: 'Create Account',
-//     details: 'Create a new cryptocurrency account',
-//   },
-// };
-
-// function intersect(o1: any, o2: any) {
-//   return Object.keys(o1).filter((k) => k in o2);
-// }
 
 export async function createAccount(account: string, balance: string) {
   const newAccountPrivateKey = PrivateKey.generate();
@@ -109,15 +77,15 @@ export async function createAccount(account: string, balance: string) {
   };
 }
 
-// async makeBytes(trans: Transaction, signingAcctId: string) {
-
-//   let transId = TransactionId.generate(signingAcctId)
-//   trans.setTransactionId(transId);
-//   trans.setNodeAccountIds([new AccountId(3)]);
-
-//   await trans.freeze();
-
-//   let transBytes = trans.toBytes();
-
-//   return transBytes;
-// }
+export async function senHbar(
+  sender: string,
+  receiver: string,
+  amount: string,
+) {
+  const senderAccountId = AccountId.fromSolidityAddress(sender).toString();
+  const newAccountTransaction = new TransferTransaction()
+    .addHbarTransfer(senderAccountId, new Hbar(-amount))
+    .addHbarTransfer(receiver, new Hbar(amount));
+  const bytes = await makeTransBytes(newAccountTransaction, senderAccountId);
+  return bytes;
+}

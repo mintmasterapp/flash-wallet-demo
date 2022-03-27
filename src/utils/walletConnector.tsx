@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign */
 import React, { useContext, useState, useEffect, useMemo } from 'react';
 import WalletConnect from '@walletconnect/client';
+import { AccountId, Client } from '@hashgraph/sdk';
 import QRCodeModal from '../components/QRCodeModal';
 import SigningLoading from '../components/SigningLoading';
 

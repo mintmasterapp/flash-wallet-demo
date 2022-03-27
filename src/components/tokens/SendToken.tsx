@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from '../../lib';
-import { sendRewards } from '../../utils/tokenService';
 import SendHBarModal from './SendTokenForm';
-import { useConnection } from '../../utils/connection';
+import { useWalletConnector } from '../../utils/walletConnector';
+import { senHbar } from '../../utils/accountServices';
 
 const SendHBar = () => {
-  const { client } = useConnection();
   const [isActiveModal, setIsActiveModal] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
+  const { account, sendTransaction, isConnected } = useWalletConnector();
 
   const onSubmit = async ({
     accountId,
@@ -18,14 +18,15 @@ const SendHBar = () => {
   }) => {
     try {
       setLoading(true);
-      await sendRewards({
-        client,
-        destinationAccount: accountId,
-        tokenCount: parseInt(amount, 10),
+      const transByte = await senHbar(account, accountId, amount);
+      sendTransaction(transByte, (result: any) => {
+        if (result) {
+          console.log('result', result);
+        }
       });
       setLoading(false);
       setIsActiveModal(false);
-    } catch (error) {
+    } catch (error: any) {
       console.log('error', error.message);
       setLoading(false);
     }
@@ -39,7 +40,11 @@ const SendHBar = () => {
         onSubmit={onSubmit}
         onClose={setIsActiveModal}
       />
-      <Button name="Send Rewards" onClick={() => setIsActiveModal(true)} />
+      <Button
+        name="Send HBAR"
+        onClick={() => setIsActiveModal(true)}
+        disabled={!isConnected}
+      />
     </>
   );
 };

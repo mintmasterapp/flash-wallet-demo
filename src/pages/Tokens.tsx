@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { Header, Button } from '../lib';
 import CreateTokenModal from '../components/tokens/CreateTokenModal';
+import AssociateTokenModal from '../components/tokens/AssociateTokenModal';
 import Tokens from '../components/tokens/Tokens';
-import config from '../utils/config';
-import { useConnection } from '../utils/connection';
-import { createToken } from '../utils/tokenService';
+import { useWalletConnector } from '../utils/walletConnector';
+import { createToken, tokenAssociate } from '../utils/tokenService';
 
 function Home() {
-  const [loading, setLoading] = useState<boolean>(false);
   const [isActiveModal, setIsActiveModal] = useState<boolean>(false);
+  const [isActiveAssociateModal, setIsActiveAssociateModal] = useState(false);
 
-  const { client } = useConnection();
+  const { account, sendTransaction, isConnected } = useWalletConnector();
 
   const handleCreateToken = async (
     {
@@ -25,34 +25,65 @@ function Home() {
     },
     { resetForm }: { resetForm: any },
   ) => {
-    try {
-      setLoading(true);
-      const token = await createToken({
-        client,
-        tokenName,
-        tokenSymbol,
-        treasuryAccountId: config.accountId,
-      });
-      console.log('token', token);
-      resetForm();
-      setIsActiveModal(false);
-      setLoading(false);
-    } catch (error: any) {
-      setLoading(false);
-      console.log('error', error.message);
-    }
+    const transByte = await createToken({
+      account,
+      tokenName,
+      tokenSymbol,
+    });
+    sendTransaction(transByte, (result: any) => {
+      if (result) {
+        console.log('result', result);
+      }
+    });
+    resetForm();
+    setIsActiveModal(false);
+  };
+
+  const handleAssociateToken = async (
+    { tokenId }: { tokenId: string },
+    { resetForm }: { resetForm: any },
+  ) => {
+    const transByte = await tokenAssociate({
+      account,
+      tokenId,
+    });
+    sendTransaction(transByte, (result: any) => {
+      if (result) {
+        console.log('result', result);
+      }
+    });
+    resetForm();
+    setIsActiveAssociateModal(false);
   };
 
   return (
     <div>
       <Header title="Tokens">
-        <Button name="Create Token" onClick={() => setIsActiveModal(true)} />
+        <Button
+          name="Associate Token"
+          onClick={() => setIsActiveAssociateModal(true)}
+          disabled={!isConnected}
+        />
+        &nbsp;
+        <Button
+          name="Create Token"
+          onClick={() => setIsActiveModal(true)}
+          disabled={!isConnected}
+        />
         {isActiveModal && (
           <CreateTokenModal
-            loading={loading}
+            loading={false}
             isActiveModal={isActiveModal}
             onClose={setIsActiveModal}
             onSubmit={handleCreateToken}
+          />
+        )}
+        {isActiveAssociateModal && (
+          <AssociateTokenModal
+            loading={false}
+            isActiveModal={isActiveAssociateModal}
+            onClose={setIsActiveAssociateModal}
+            onSubmit={handleAssociateToken}
           />
         )}
       </Header>

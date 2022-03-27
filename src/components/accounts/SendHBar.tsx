@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Button } from '../../lib';
-import { sendHBars } from '../../utils/accountServices';
 import SendHBarModal from './SendHBarForm';
 
 const SendHBar = ({ account }: { account: any }) => {
@@ -16,15 +15,10 @@ const SendHBar = ({ account }: { account: any }) => {
   }) => {
     try {
       setLoading(true);
-      await sendHBars({
-        accountId: account.accountId,
-        privateKey: account.privateKey,
-        destinationAccountId: accountId,
-        amount: parseFloat(amount),
-      });
+
       setLoading(false);
       setIsActiveModal(false);
-    } catch (error) {
+    } catch (error: any) {
       console.log('error', error.message);
       setLoading(false);
     }
