@@ -163,8 +163,10 @@ export function WalletConnectorProvider({ children = undefined as any }) {
         isActiveModal={signing}
         error={error}
         onClose={() => {
-          setSigning(false);
-          setError(null);
+          if (!signing) {
+            setSigning(false);
+            setError(null);
+          }
         }}
       />
     </WalletConnectorContext.Provider>
