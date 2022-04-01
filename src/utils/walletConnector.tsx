@@ -127,6 +127,11 @@ export function WalletConnectorProvider({ children = undefined as any }) {
       throw err;
     }
     console.log('session_update', payload);
+    setIsActiveQr(false);
+    setIsConnected(true);
+    const { accounts, chainId: chain } = payload.params[0];
+    setAccount(accounts[0]);
+    setChainId(chain);
   });
 
   connector.on('disconnect', (err) => {

@@ -12,7 +12,7 @@ import {
   AccountBalanceQuery,
 } from '@hashgraph/sdk';
 import axios from 'axios';
-import Long from 'long';
+// import Long from 'long';
 
 const getHederaClient = (chainId: number) => {
   if (chainId === 1) {
@@ -85,7 +85,8 @@ export async function senHbar(
   const senderAccountId = AccountId.fromSolidityAddress(sender).toString();
   const newAccountTransaction = new TransferTransaction()
     .addHbarTransfer(senderAccountId, new Hbar(-amount))
-    .addHbarTransfer(receiver, new Hbar(amount));
+    .addHbarTransfer(receiver, new Hbar(amount))
+    .setTransactionMemo('Hello buddy sign and enjoy!');
   const bytes = await makeTransBytes(newAccountTransaction, senderAccountId);
   return bytes;
 }
