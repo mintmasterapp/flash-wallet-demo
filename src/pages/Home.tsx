@@ -66,11 +66,11 @@ function Home() {
     <div>
       <Header title="Accounts">
         <SendHBar /> &nbsp;
-        <Button
+        {/* <Button
           name="Create Account"
           onClick={() => setIsActiveModal(true)}
           disabled={!isConnected}
-        />
+        /> */}
         {isActiveModal && (
           <CreateAccountModal
             loading={loading}
